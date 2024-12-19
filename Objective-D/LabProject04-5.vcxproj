@@ -150,7 +150,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BoundboxShader.h" />
-    <ClInclude Include="CameraController.h" />
     <ClInclude Include="CameraUtil.h" />
     <ClInclude Include="ConstantBufferData.h" />
     <ClInclude Include="ConstantBuffers.h" />
