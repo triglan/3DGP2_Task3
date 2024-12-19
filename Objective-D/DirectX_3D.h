@@ -24,7 +24,7 @@
 #include "d3dx12.h"
 #include "WICTextureLoader12.h"
 #include "DDSTextureLoader12.h"
-#include "CBVResource.h"
+#include "ConstantBuffers.h"
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -39,9 +39,11 @@
 
 // 렌더링 타입 열거형
 enum RenderTypeEnum {
-	RENDER_TYPE_PERS, 
-	RENDER_TYPE_ORTHO, 
-	RENDER_TYPE_IMAGE 
+	RENDER_TYPE_3D, 
+	RENDER_TYPE_3D_ORTHO, 
+	RENDER_TYPE_2D,
+	RENDER_TYPE_3D_STATIC,
+	RENDER_TYPE_2D_STATIC
 };
 
 // 텍스처 반전 타입 열거형
@@ -49,7 +51,19 @@ enum FlipTypeEnum {
 	FLIP_TYPE_NONE,
 	FLIP_TYPE_H,
 	FLIP_TYPE_V,
-	FLIP_TYPE_HV,
+	FLIP_TYPE_HV
+};
+
+// 조명 사용 여부 열거형
+enum UseLightEnum {
+	DISABLE_LIGHT,
+	ENABLE_LIGHT
+};
+
+// 안개 사용 여부 열거형
+enum UseFogenum {
+	DISABLE_FOG,
+	ENABLE_FOG
 };
 
 // 매쉬 파일 타입 열거형
@@ -71,6 +85,39 @@ typedef struct Vector {
 	DirectX::XMFLOAT3 Up;
 }ObjectVector;
 
+// 키보드 이벤트 구조체
+typedef struct {
+	HWND hWnd;
+	UINT Type;
+	WPARAM Key;
+	LPARAM lParam;
+}KeyEvent;
+
+// 마우스 이벤트 구조체
+typedef struct {
+	HWND hWnd;
+	UINT Type;
+	WPARAM wParam;
+	LPARAM lParam;
+}MouseEvent;
+
+// 마우스 모션 이벤트 구조체
+typedef struct {
+	HWND CaptureState;
+	POINT Motion;
+}MotionEvent;
+
+// 디바이스, 커맨드리스트 통합 구조체
+typedef struct {
+	ID3D12Device* Device;
+	ID3D12GraphicsCommandList* CmdList;
+}DeviceSystem;
+
+// 오브젝트에서 공용으로 사용하는 커맨트 리스트
+extern ID3D12GraphicsCommandList* ObjectCmdList;
+
+// 기본 루트 시그니처
+extern ID3D12RootSignature* DefaultRootSignature;
 
 // screen size
 extern int SCREEN_WIDTH, SCREEN_HEIGHT;

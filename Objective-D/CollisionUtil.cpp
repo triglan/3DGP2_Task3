@@ -18,10 +18,18 @@ void OOBB::Update(Mesh* MeshPtr, XMFLOAT4X4& TMatrix, XMFLOAT4X4& RMatrix, XMFLO
 	}
 }
 
-void OOBB::Render(ID3D12GraphicsCommandList* CmdList) {
+void OOBB::Update(XMFLOAT3& Position, XMFLOAT3& Size, XMFLOAT3& Rotation) {
+	oobb.Center = Position;
+	oobb.Extents = Size;
+	XMVECTOR Quarternion =
+		XMQuaternionRotationRollPitchYaw(XMConvertToRadians(Rotation.x), XMConvertToRadians(Rotation.y), XMConvertToRadians(Rotation.z));
+	XMStoreFloat4(&oobb.Orientation, Quarternion);
+}
+
+void OOBB::Render() {
 #ifdef SHOW_BOUND_BOX
-	TranslateMatrix = Mat4::Identity();
-	ScaleMatrix = Mat4::Identity();
+	Transform::Identity(TranslateMatrix);
+	Transform::Identity(ScaleMatrix);
 
 	Transform::Move(TranslateMatrix, oobb.Center.x, oobb.Center.y, oobb.Center.z);
 	Transform::Scale(ScaleMatrix, oobb.Extents.x, oobb.Extents.y, oobb.Extents.z);
@@ -31,16 +39,8 @@ void OOBB::Render(ID3D12GraphicsCommandList* CmdList) {
 	XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(QuaternionForMatrix);
 	XMStoreFloat4x4(&RotateMatrix, rotationMatrix);
 
-	CBVUtil::Input(CmdList, BoolLightCBV, 0);
-	CBVUtil::Input(CmdList, FlipCBV, 0);
-
-	LineTex->Render(CmdList);
-	BoundboxShader->Render(CmdList);
-
-	camera.InitMatrix();
-	camera.GeneratePerspectiveMatrix(0.01f, 5000.0f, ASPECT, 45.0f);
-	camera.SetViewportsAndScissorRects(CmdList);
-	camera.UpdateShaderVariables(CmdList);
+	BoundboxShader->RenderWireframe(ObjectCmdList);
+	camera.SetToDefaultMode();
 
 	XMMATRIX ResultMatrix = XMMatrixMultiply(XMLoadFloat4x4(&ScaleMatrix), XMLoadFloat4x4(&RotateMatrix));
 	ResultMatrix = XMMatrixMultiply(ResultMatrix, XMLoadFloat4x4(&TranslateMatrix));
@@ -48,15 +48,13 @@ void OOBB::Render(ID3D12GraphicsCommandList* CmdList) {
 	XMFLOAT4X4 xmf4x4World;
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(ResultMatrix));
 
-	float AlphaValue = 1.0;
+	RCUtil::Input(ObjectCmdList, &xmf4x4World, GAME_OBJECT_INDEX, 16, 0);
+	RCUtil::Input(ObjectCmdList, &BoundboxColor, GAME_OBJECT_INDEX, 3, 16);
 
-	RCUtil::Input(CmdList, &xmf4x4World, GAME_OBJECT_INDEX, 16, 0);
-	RCUtil::Input(CmdList, &BoundboxColor, GAME_OBJECT_INDEX, 3, 16);
-	RCUtil::Input(CmdList, &AlphaValue, ALPHA_INDEX, 1, 0);
-
-	BoundMesh->Render(CmdList);
+	BoundMesh->Render(ObjectCmdList);
 #endif
 }
+
 
 bool OOBB::CheckCollision(const OOBB& Other) {
 	if (oobb.Intersects(Other.oobb)) {
@@ -68,8 +66,8 @@ bool OOBB::CheckCollision(const OOBB& Other) {
 	return false;
 }
 
-bool OOBB::CheckCollision(const BoundingBox& Other) {
-	if (oobb.Intersects(Other)) {
+bool OOBB::CheckCollision(const AABB& Other) {
+	if (oobb.Intersects(Other.aabb)) {
 		Collide = true;
 		return true;
 	}
@@ -78,8 +76,8 @@ bool OOBB::CheckCollision(const BoundingBox& Other) {
 	return false;
 }
 
-bool OOBB::CheckCollision(const BoundingSphere& Other) {
-	if (oobb.Intersects(Other)) {
+bool OOBB::CheckCollision(const Range& Other) {
+	if (oobb.Intersects(Other.sphere)) {
 		Collide = true;
 		return true;
 	}
@@ -90,42 +88,31 @@ bool OOBB::CheckCollision(const BoundingSphere& Other) {
 
 
 
-void AABB::Update(XMFLOAT3 Position, XMFLOAT3 Size) {
+void AABB::Update(XMFLOAT3& Position, XMFLOAT3& Size) {
 	aabb.Center = Position;
 	aabb.Extents = Size;
 }
 
-void AABB::Render(ID3D12GraphicsCommandList* CmdList) {
+void AABB::Render() {
 #ifdef SHOW_BOUND_BOX
-	TranslateMatrix = Mat4::Identity();
-	ScaleMatrix = Mat4::Identity();
+	Transform::Identity(TranslateMatrix);
+	Transform::Identity(ScaleMatrix);
 
 	Transform::Move(TranslateMatrix, aabb.Center.x, aabb.Center.y, aabb.Center.z);
 	Transform::Scale(ScaleMatrix, aabb.Extents.x, aabb.Extents.y, aabb.Extents.z);
 
-	CBVUtil::Input(CmdList, BoolLightCBV, 0);
-	CBVUtil::Input(CmdList, FlipCBV, 0);
-
-	LineTex->Render(CmdList);
-	BoundboxShader->Render(CmdList);
-
-	camera.InitMatrix();
-	camera.GeneratePerspectiveMatrix(0.01f, 5000.0f, ASPECT, 45.0f);
-	camera.SetViewportsAndScissorRects(CmdList);
-	camera.UpdateShaderVariables(CmdList);
+	BoundboxShader->RenderWireframe(ObjectCmdList);
+	camera.SetToDefaultMode();
 
 	XMMATRIX ResultMatrix = XMMatrixMultiply(XMLoadFloat4x4(&ScaleMatrix), XMLoadFloat4x4(&TranslateMatrix));
 
 	XMFLOAT4X4 xmf4x4World;
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(ResultMatrix));
 
-	float AlphaValue = 1.0;
+	RCUtil::Input(ObjectCmdList, &xmf4x4World, GAME_OBJECT_INDEX, 16, 0);
+	RCUtil::Input(ObjectCmdList, &BoundboxColor, GAME_OBJECT_INDEX, 3, 16);
 
-	RCUtil::Input(CmdList, &xmf4x4World, GAME_OBJECT_INDEX, 16, 0);
-	RCUtil::Input(CmdList, &BoundboxColor, GAME_OBJECT_INDEX, 3, 16);
-	RCUtil::Input(CmdList, &AlphaValue, ALPHA_INDEX, 1, 0);
-
-	BoundMesh->Render(CmdList);
+	BoundMesh->Render(ObjectCmdList);
 #endif
 }
 
@@ -139,8 +126,8 @@ bool AABB::CheckCollision(const AABB& Other) {
 	return false;
 }
 
-bool AABB::CheckCollision(const BoundingOrientedBox& Other) {
-	if (aabb.Intersects(Other)) {
+bool AABB::CheckCollision(const OOBB& Other) {
+	if (aabb.Intersects(Other.oobb)) {
 		Collide = true;
 		return true;
 	}
@@ -149,8 +136,8 @@ bool AABB::CheckCollision(const BoundingOrientedBox& Other) {
 	return false;
 }
 
-bool AABB::CheckCollision(const BoundingSphere& Other) {
-	if (aabb.Intersects(Other)) {
+bool AABB::CheckCollision(const Range& Other) {
+	if (aabb.Intersects(Other.sphere)) {
 		Collide = true;
 		return true;
 	}
@@ -161,9 +148,10 @@ bool AABB::CheckCollision(const BoundingSphere& Other) {
 
 
 
-void Range::Update(const XMFLOAT3& Center, float Size) {
+void Range::Update(const XMFLOAT3& Center, float SizeValue) {
 	sphere.Center = Center;
-	sphere.Radius = Size;
+	sphere.Radius = SizeValue * 0.5;
+	Size = SizeValue;
 }
 
 bool Range::CheckCollision(const Range& Other) {
@@ -176,8 +164,8 @@ bool Range::CheckCollision(const Range& Other) {
 	return false;
 }
 
-bool Range::CheckCollision(const BoundingBox& Other) {
-	if (sphere.Intersects(Other)) {
+bool Range::CheckCollision(const AABB& Other) {
+	if (sphere.Intersects(Other.aabb)) {
 		Collide = true;
 		return true;
 	}
@@ -186,8 +174,8 @@ bool Range::CheckCollision(const BoundingBox& Other) {
 	return false;
 }
 
-bool Range::CheckCollision(const BoundingOrientedBox& Other) {
-	if (sphere.Intersects(Other)) {
+bool Range::CheckCollision(const OOBB& Other) {
+	if (sphere.Intersects(Other.oobb)) {
 		Collide = true;
 		return true;
 	}
@@ -196,36 +184,25 @@ bool Range::CheckCollision(const BoundingOrientedBox& Other) {
 	return false;
 }
 
-void Range::Render(ID3D12GraphicsCommandList* CmdList) {
+void Range::Render() {
 #ifdef SHOW_BOUND_BOX
-	TranslateMatrix = Mat4::Identity();
-	ScaleMatrix = Mat4::Identity();
+	Transform::Identity(TranslateMatrix);
+	Transform::Identity(ScaleMatrix);
 
 	Transform::Move(TranslateMatrix, sphere.Center.x, sphere.Center.y, sphere.Center.z);
-	Transform::Scale(ScaleMatrix, sphere.Radius, sphere.Radius, sphere.Radius);
+	Transform::Scale(ScaleMatrix, Size * 0.27, Size * 0.27, Size * 0.27);
 
-	CBVUtil::Input(CmdList, BoolLightCBV, 0);
-	CBVUtil::Input(CmdList, FlipCBV, 0);
-
-	LineTex->Render(CmdList);
-	ObjectShader->Render(CmdList);
-
-	camera.InitMatrix();
-	camera.GeneratePerspectiveMatrix(0.01f, 5000.0f, ASPECT, 45.0f);
-	camera.SetViewportsAndScissorRects(CmdList);
-	camera.UpdateShaderVariables(CmdList);
+	BoundboxShader->RenderDefault(ObjectCmdList);
+	camera.SetToDefaultMode();
 
 	XMMATRIX ResultMatrix = XMMatrixMultiply(XMLoadFloat4x4(&ScaleMatrix), XMLoadFloat4x4(&TranslateMatrix));
 
 	XMFLOAT4X4 xmf4x4World;
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(ResultMatrix));
 
-	float AlphaValue = 1.0;
+	RCUtil::Input(ObjectCmdList, &xmf4x4World, GAME_OBJECT_INDEX, 16, 0);
+	RCUtil::Input(ObjectCmdList, &BoundboxColor, GAME_OBJECT_INDEX, 3, 16);
 
-	RCUtil::Input(CmdList, &xmf4x4World, GAME_OBJECT_INDEX, 16, 0);
-	RCUtil::Input(CmdList, &BoundboxColor, GAME_OBJECT_INDEX, 3, 16);
-	RCUtil::Input(CmdList, &AlphaValue, ALPHA_INDEX, 1, 0);
-
-	BoundingSphereMesh->Render(CmdList);
+	BoundingSphereMesh->Render(ObjectCmdList);
 #endif
 }
