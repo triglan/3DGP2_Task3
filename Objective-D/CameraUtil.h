@@ -29,10 +29,12 @@ protected:
 	D3D12_RECT						ScissorRect{};
 
 private:
-	CamMode Mode{};
+
+	// 활성화 시 초기 행렬이 쉐이더에 전송된다.
 	bool StaticMode{};
 
 public:
+	CamMode Mode{};
 	D3D12_VIEWPORT					Viewport{};
 	XMFLOAT4X4						ViewMatrix{};
 	XMFLOAT4X4						ProjectionMatrix{};
@@ -48,26 +50,25 @@ public:
 	virtual void CreateShaderVariables(ID3D12Device* Device, ID3D12GraphicsCommandList* CmdList) {}
 	virtual void ReleaseShaderVariables() {}
 	void SetToDefaultMode();
+	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList* CmdList);
 
+	void GenerateViewMatrix();
+	void GenerateViewMatrix(XMFLOAT3 PositionValue, XMFLOAT3 LookAt, XMFLOAT3 UpValue);
 	void SetToStaticMode();
-	void UpdateShaderVariables();
-	void SetViewMatrix();
+	void InitMatrix();
 	void InitStaticMatrix();
-	void GenerateStaticMatrix();
+	void UpdateStaticMatrix();
 	void GeneratePerspectiveMatrix(float NearPlane, float FarPlane, float AspRatio, float Fov);
 	void GenerateOrthoMatrix(float Width, float Height, float AspRatio, float Near, float Far);
 	void SetViewport(int xTopLeft, int yTopLeft, int nWidth, int nHeight, float zMin = 0.0f, float zMax = 1.0f);
 	void SetScissorRect(LONG xLeft, LONG yTop, LONG xRight, LONG yBottom);
-	void SetViewportsAndScissorRects();
-	void SwitchCameraMode(CamMode GetMode);
-
-	CamMode CurrentMode();
+	virtual void SetViewportsAndScissorRects(ID3D12GraphicsCommandList* CmdList);
+	void SetCameraMode(CamMode GetMode);
 
 	void Move(XMFLOAT3 PositionValue);
 	XMFLOAT3& GetPosition();
 
 	void Rotate(float X, float Y, float Z);
-
 
 	void SetLookAtPosition(XMFLOAT3 LookAtValue);
 	XMFLOAT3& GetLookAtPosition();
@@ -92,14 +93,13 @@ public:
 	D3D12_RECT GetScissorRect();
 
 	void Move(float X, float Y, float Z);
-	void Vector_MoveForward(float MoveDistance);
 	void MoveForward(float MoveDistance);
-	void Vector_MoveStrafe(float MoveDistance);
-	void Vector_MoveUp(XMFLOAT3& Position, XMFLOAT3 Up, float Distance);
+	void MoveForwardWithoutHeight(float MoveDistance);
 	void MoveStrafe(float MoveDistance);
-	void MoveUp(float MoveDistance);
-	void Track(XMFLOAT3& ObjectPosition, Vector& VectorStruct, float fTimeElapsed);
-	void TrackOffset(XMFLOAT3& ObjectPosition, Vector& VectorStruct, XMFLOAT3& OffsetValue, float fTimeElapsed);
+	void MoveStrafeWithoutHeight(float MoveDistance);
+	void MoveVertical(float MoveDistance);
+	void Track(XMFLOAT3& ObjectPosition, XMFLOAT3& UpVec, XMFLOAT3& RightVec, XMFLOAT3& LookVec, float fTimeElapsed);
+	void TrackWithOffset(XMFLOAT3& ObjectPosition, XMFLOAT3& UpVec, XMFLOAT3& RightVec, XMFLOAT3& LookVec, XMFLOAT3& Offset, float fTimeElapsed);
 	void SetLookAt(XMFLOAT3& ObjectPosition, XMFLOAT3& UpVec);
 	void CalculateFrustumPlanes();
 	bool IsInFrustum(BoundingBox& BoundingBox);

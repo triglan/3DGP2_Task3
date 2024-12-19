@@ -1,10 +1,11 @@
 #include "ShaderUtil.h"
 
 // 쉐이더
+
 Shader::~Shader() {
-	if (PSDefault)
-		PSDefault->Release();
-	PSDefault = NULL;
+	if (PipelineState)
+		PipelineState->Release();
+	PipelineState = NULL;
 
 	ReleaseShaderVariables();
 }
@@ -42,14 +43,6 @@ D3D12_SHADER_BYTECODE Shader::CreatePixelShader(ID3DBlob** ShaderBlob) {
 	return(ShaderByteCode);
 }
 
-D3D12_SHADER_BYTECODE Shader::CreateGeometryShader(ID3DBlob** ShaderBlob) {
-	D3D12_SHADER_BYTECODE ShaderByteCode;
-	ShaderByteCode.BytecodeLength = 0;
-	ShaderByteCode.pShaderBytecode = NULL;
-
-	return(ShaderByteCode);
-}
-
 D3D12_SHADER_BYTECODE Shader::CompileShaderFromFile(WCHAR* FileName, LPCSTR Shadername, LPCSTR ShaderProfile, ID3DBlob** ShaderBlob) {
 	UINT CompileFlags = 0;
 #if defined(_DEBUG)
@@ -70,21 +63,36 @@ void Shader::OnPrepareRender(ID3D12GraphicsCommandList* CmdList, ID3D12PipelineS
 		CmdList->SetPipelineState(PS);
 }
 
-// 와이어 프레임 파이프라인 적용, 깊이 검사 적용됨
-void Shader::RenderWireframe(ID3D12GraphicsCommandList* CmdList) {
-	OnPrepareRender(CmdList, PSWireframe);
+// DepthTest가 true일 때만 깊이 검사 실행
+void Shader::Render(ID3D12GraphicsCommandList* CmdList, bool DepthTest) {
+	if (DepthTest)
+		OnPrepareRender(CmdList, PipelineState);
+	else
+		OnPrepareRender(CmdList, PSDepthNone);
 }
 
-// 깊이 검사를 해제한 파이프라인 적용
-void Shader::RenderDepthNone(ID3D12GraphicsCommandList* CmdList) {
-	OnPrepareRender(CmdList, PSDepthNone);
+
+////////////////////////////////
+// 이 프로젝트에서 현재 사용하는 쉐이더, 추후 변경될 수 있음
+D3D12_INPUT_LAYOUT_DESC BasicObjectShader::CreateInputLayout() {
+	UINT NumInputElementDescs = 3;
+	D3D12_INPUT_ELEMENT_DESC* InputElementDescs = new D3D12_INPUT_ELEMENT_DESC[NumInputElementDescs];
+
+	InputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	InputElementDescs[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	InputElementDescs[2] = { "TEXTURECOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 2, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	D3D12_INPUT_LAYOUT_DESC InputLayoutDesc;
+	InputLayoutDesc.pInputElementDescs = InputElementDescs;
+	InputLayoutDesc.NumElements = NumInputElementDescs;
+
+	return(InputLayoutDesc);
 }
 
-// 깊이 검사를 포함한 파이프라인 적용
-void Shader::RenderDefault(ID3D12GraphicsCommandList* CmdList) {
-	OnPrepareRender(CmdList, PSDefault);
+D3D12_SHADER_BYTECODE BasicObjectShader::CreateVertexShader(ID3DBlob** ShaderBlob) {
+	return(Shader::CompileShaderFromFile(L"Resources//SystemResources//Shader//BasicShader.hlsl", "VSTexColor", "vs_5_1", ShaderBlob));
 }
 
-void Shader::RenderParticle(ID3D12GraphicsCommandList* CmdList) {
-	OnPrepareRender(CmdList, PSParticle);
+D3D12_SHADER_BYTECODE BasicObjectShader::CreatePixelShader(ID3DBlob** ShaderBlob) {
+	return(Shader::CompileShaderFromFile(L"Resources//SystemResources//Shader//BasicShader.hlsl", "PSTexColor", "ps_5_1", ShaderBlob));
 }

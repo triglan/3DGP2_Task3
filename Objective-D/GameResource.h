@@ -1,46 +1,32 @@
 #pragma once
 #include "MeshUtil.h"
+#include "ShaderUtil.h"
 #include "TextureUtil.h"
-#include "ImageShader.h"
-#include "ObjectShader.h"
-#include "BoundboxShader.h"
-#include "LineShader.h"
 
-// 매쉬, 텍스처, 쉐이더 전역 뱐수를 여기에 extern 선언
-extern Mesh* GunMesh;
-/////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// 기본 리소스
+extern BasicObjectShader* ObjectShader;
+extern BasicObjectShader* BoundboxShader;
 
-extern Texture* Tex, * SkyboxTex, * WoodTex;
-/////////////////////////////////////////////////////////////////////////////////
+// 선 출력용 텍스처
+extern Texture* LineTex;
 
-extern Object_Shader* ObjectShader;
-extern Boundbox_Shader* BoundboxShader;
-extern Image_Shader* ImageShader;
-extern Line_Shader* LineShader;
-/////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////// 기본 리소스
-// 매쉬, 텍스처 로드 시 포인터를 저장하는 벡터
-// 한꺼번에 업로드 버퍼를 삭제함
-extern std::vector<Mesh*> LoadedMeshList;
-extern std::vector<Texture*> LoadedTextureList;
-
+// 이미지 출력용 매쉬
 extern Mesh* ImagePannel;
+
+// 스카이박스 출력용 매쉬
 extern Mesh* SkyboxMesh;
+
+// 바운드박스 출력용 매쉬
 extern Mesh* BoundMesh;
+
+// 바운드 스페어 출력용 매쉬
 extern Mesh* BoundingSphereMesh;
+//////////////////////////////////
 
-void LoadShader(ID3D12RootSignature* RootSignature, ID3D12Device* Device);
-void LoadSystemMesh(DeviceSystem& System);
-void LoadMesh(DeviceSystem& System);
-void LoadTexture(DeviceSystem& System);
-void ClearUploadBuffer();
+// 커스텀 매쉬 및 텍스처
+extern Mesh* HelicopterBodyMesh, * HelicopterHeadMesh, * TerrainMesh;
+extern Texture* HelicopterTex, * WoodTex, * SkyboxTex, * TerrainTex, * TreeTex, * GuideTex;
 
-inline void ImportMesh(DeviceSystem& System, Mesh*& MeshPtr, char* Directory, int Type) {
-	MeshPtr = new Mesh(System.Device, System.CmdList, Directory, Type);
-	LoadedMeshList.emplace_back(MeshPtr);
-}
-
-inline void ImportTexture(DeviceSystem& System, Texture*& TexturePtr, wchar_t* Directory, int Type, D3D12_FILTER FilterOption=D3D12_FILTER_MIN_MAG_MIP_LINEAR) {
-	TexturePtr = new Texture(System.Device, System.CmdList, Directory, Type, FilterOption);
-	LoadedTextureList.emplace_back(TexturePtr);
-}
+void CreateShaderResource(ID3D12RootSignature* RootSignature, ID3D12Device* Device, ID3D12GraphicsCommandList* CmdList);
+void CreateMeshResource(ID3D12Device* Device, ID3D12GraphicsCommandList* CmdList);
+void CreateTextureResource(ID3D12Device* Device, ID3D12GraphicsCommandList* CmdList);
