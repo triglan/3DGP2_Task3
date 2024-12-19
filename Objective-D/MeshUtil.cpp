@@ -90,38 +90,46 @@ int Mesh::CheckRayIntersection(XMVECTOR& xmvPickRayOrigin, XMVECTOR& xmvPickRayD
 	return(nIntersections);
 }
 
-float Mesh::GetHeightAtPosition(Mesh* terrainMesh, float x, float z, const XMFLOAT4X4& worldMatrix) {
-	// XMFLOAT4X4를 XMMATRIX로 변환
-	XMMATRIX gmtxWorld = XMLoadFloat4x4(&worldMatrix);
+// 높이 캐시를 비운다.
+void Mesh::ClearHeightCache() {
+	HeightCache.clear();
+	HeightCacheSaved = false;
+}
 
-	// 월드 좌표로 변환된 삼각형의 각 점 좌표를 계산
-	for (UINT i = 0; i < terrainMesh->Indices; i += 3) {
-		XMFLOAT3 v0 = terrainMesh->Position[terrainMesh->PnIndices[i]];
-		XMFLOAT3 v1 = terrainMesh->Position[terrainMesh->PnIndices[i + 1]];
-		XMFLOAT3 v2 = terrainMesh->Position[terrainMesh->PnIndices[i + 2]];
+// 높이 캐시에 높이 값을 저장한다.
+void Mesh::SetHeightCache(Mesh* terrainMesh, const XMFLOAT4X4& worldMatrix) {
+	if (!HeightCacheSaved) {
+		XMMATRIX gmtxWorld = XMLoadFloat4x4(&worldMatrix);
 
-		// 로컬 좌표를 월드 좌표로 변환
-		XMVECTOR v0World = XMVector3Transform(XMLoadFloat3(&v0), gmtxWorld);
-		XMVECTOR v1World = XMVector3Transform(XMLoadFloat3(&v1), gmtxWorld);
-		XMVECTOR v2World = XMVector3Transform(XMLoadFloat3(&v2), gmtxWorld);
-
-		// 월드 좌표로 변환된 점을 다시 저장
-		XMStoreFloat3(&v0, v0World);
-		XMStoreFloat3(&v1, v1World);
-		XMStoreFloat3(&v2, v2World);
-
-		// 삼각형 내부인지 확인
-		if (IsPointInTriangle(XMFLOAT2(x, z), XMFLOAT2(v0.x, v0.z), XMFLOAT2(v1.x, v1.z), XMFLOAT2(v2.x, v2.z))) {
-			// 삼각형 평면에서 Y 값을 계산
-			float height = ComputeHeightOnTriangle(XMFLOAT3(x, 0, z), v0, v1, v2);
-			return height;
+		for (UINT i = 0; i < terrainMesh->Indices; ++i) {
+			XMFLOAT3 v = terrainMesh->Position[terrainMesh->PnIndices[i]];
+			XMVECTOR vWorld = XMVector3Transform(XMLoadFloat3(&v), gmtxWorld);
+			XMFLOAT3 worldVertex;
+			XMStoreFloat3(&worldVertex, vWorld);
+			HeightCache.push_back(worldVertex);
 		}
+
+		HeightCacheSaved = true;
 	}
-	// 삼각형을 찾지 못한 경우 기본 값 반환 (예: 0)
+}
+
+// 현재 지점의 높이를 구한다.
+float Mesh::GetHeightAtPosition(Mesh* terrainMesh, float x, float z, const XMFLOAT4X4& worldMatrix) {
+	size_t Size = HeightCache.size();
+
+	for (UINT i = 0; i < Size; i += 3) {
+		XMFLOAT3 v0 = HeightCache[i];
+		XMFLOAT3 v1 = HeightCache[i + 1];
+		XMFLOAT3 v2 = HeightCache[i + 2];
+
+		if (IsPointInTriangle(XMFLOAT2(x, z), XMFLOAT2(v0.x, v0.z), XMFLOAT2(v1.x, v1.z), XMFLOAT2(v2.x, v2.z)))
+			return ComputeHeightOnTriangle(XMFLOAT3(x, 0, z), v0, v1, v2);
+	}
+
 	return 0.0f;
 }
 
-bool Mesh::IsPointInTriangle(XMFLOAT2 pt, XMFLOAT2 v0, XMFLOAT2 v1, XMFLOAT2 v2) {
+bool Mesh::IsPointInTriangle(XMFLOAT2& pt, XMFLOAT2& v0, XMFLOAT2& v1, XMFLOAT2& v2) {
 	float d00 = (v1.x - v0.x) * (v1.x - v0.x) + (v1.y - v0.y) * (v1.y - v0.y);
 	float d01 = (v1.x - v0.x) * (v2.x - v0.x) + (v1.y - v0.y) * (v2.y - v0.y);
 	float d11 = (v2.x - v0.x) * (v2.x - v0.x) + (v2.y - v0.y) * (v2.y - v0.y);
@@ -135,7 +143,7 @@ bool Mesh::IsPointInTriangle(XMFLOAT2 pt, XMFLOAT2 v0, XMFLOAT2 v1, XMFLOAT2 v2)
 	return (u >= 0) && (v >= 0) && (w >= 0);
 }
 
-float Mesh::ComputeHeightOnTriangle(XMFLOAT3 pt, XMFLOAT3 v0, XMFLOAT3 v1, XMFLOAT3 v2) {
+float Mesh::ComputeHeightOnTriangle(XMFLOAT3& pt, XMFLOAT3& v0, XMFLOAT3& v1, XMFLOAT3& v2) {
 	XMVECTOR p = XMLoadFloat3(&pt);
 	XMVECTOR a = XMLoadFloat3(&v0);
 	XMVECTOR b = XMLoadFloat3(&v1);
