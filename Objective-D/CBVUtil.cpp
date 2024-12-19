@@ -1,6 +1,7 @@
 #include "CBVUtil.h"
 
 // 쉐이더에 사용되는 상수 버퍼를 생성한다
+// 쉐이더에 사용되는 상수 버퍼를 생성한다
 void CBVUtil::Create(ID3D12Device* Device, void* Data, size_t DataSize, CBV& CBV_Struct, int CBV_Index) {
 	UINT64 cbSize = (DataSize + 255) & ~255;
 
@@ -53,28 +54,9 @@ void CBVUtil::Create(ID3D12Device* Device, void* Data, size_t DataSize, CBV& CBV
 	Device->CreateConstantBufferView(&cbvDesc, CBV_Struct.Heap[CBV_Index]->GetCPUDescriptorHandleForHeapStart());
 }
 
-// CBV 구조체에 루트 시그니처 인덱스를 부여한다.
-void CBVUtil::SetSignatureIndex(CBV& CBV_Struct, int RootSignatureIndex) {
-	CBV_Struct.SignatureIndex = RootSignatureIndex;
-}
-
 // CBV를 쉐이더로 전송한다.
 void CBVUtil::Input(ID3D12GraphicsCommandList* CmdList, CBV& CBV_Struct, int CBV_Index) {
 	ID3D12DescriptorHeap* heaps[] = { CBV_Struct.Heap[CBV_Index] };
 	CmdList->SetDescriptorHeaps(_countof(heaps), heaps);
 	CmdList->SetGraphicsRootDescriptorTable(CBV_Struct.SignatureIndex, CBV_Struct.Heap[CBV_Index]->GetGPUDescriptorHandleForHeapStart());
-}
-
-// CBV를 업데이트 한다.
-void CBVUtil::Update(ID3D12GraphicsCommandList* CmdList, void* Data, size_t DataSize, CBV& CBV_Struct, int CBVIndex) {
-	void* pCbData = nullptr;
-	D3D12_RANGE readRange = { 0, 0 };
-
-	CBV_Struct.Buffer[CBVIndex]->Map(0, &readRange, reinterpret_cast<void**>(&pCbData));
-	memcpy(pCbData, Data, DataSize);
-	CBV_Struct.Buffer[CBVIndex]->Unmap(0, nullptr);
-
-	ID3D12DescriptorHeap* heaps[] = { CBV_Struct.Heap[CBVIndex] };
-	CmdList->SetDescriptorHeaps(_countof(heaps), heaps);
-	CmdList->SetGraphicsRootDescriptorTable(CBV_Struct.SignatureIndex, CBV_Struct.Heap[CBVIndex]->GetGPUDescriptorHandleForHeapStart());
 }

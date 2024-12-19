@@ -2,8 +2,13 @@
 #include "RootConstants.h"
 #include <iostream>
 
-Texture::Texture(ID3D12Device* Device, ID3D12GraphicsCommandList* CmdList, wchar_t* FileName, int Type) {
-	CreateTextureAndSRV(Device, CmdList, FileName, &Tex, &SRV, &Sampler, Type);
+Texture::Texture(ID3D12Device* Device, ID3D12GraphicsCommandList* CmdList, wchar_t* FileName, int Type, D3D12_FILTER FilterOption) {
+	CreateTextureAndSRV(Device, CmdList, FileName, &Tex, &SRV, &Sampler, Type, FilterOption);
+}
+
+void Texture::ReleaseUploadBuffers() {
+	if (UploadBuffer) 
+		UploadBuffer->Release();
 }
 
 void Texture::Render(ID3D12GraphicsCommandList* CmdList) {
@@ -13,15 +18,13 @@ void Texture::Render(ID3D12GraphicsCommandList* CmdList) {
 	CmdList->SetGraphicsRootDescriptorTable(SAMPLER_INDEX, Sampler->GetGPUDescriptorHandleForHeapStart());
 }
 
-void Texture::CreateTextureAndSRV(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, wchar_t* pszTextureFilename, ID3D12Resource** ppd3dTexture, ID3D12DescriptorHeap** ppd3dSrvDescriptorHeap, ID3D12DescriptorHeap** ppd3dSamplerDescriptorHeap, int Type) {
-	ID3D12Resource* pd3dUploadBuffer = nullptr;
-
+void Texture::CreateTextureAndSRV(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, wchar_t* pszTextureFilename, ID3D12Resource** ppd3dTexture, ID3D12DescriptorHeap** ppd3dSrvDescriptorHeap, ID3D12DescriptorHeap** ppd3dSamplerDescriptorHeap, int Type, D3D12_FILTER FilterOption) {
 	// 텍스처 로드, 입력한 타입에 따라 다른 형식의 파일을 로드한다.
 	if(Type == TEXTURE_TYPE_WIC)
-		*ppd3dTexture = CreateTextureResourceFromWICFile(pd3dDevice, pd3dCommandList, pszTextureFilename, &pd3dUploadBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		*ppd3dTexture = CreateTextureResourceFromWICFile(pd3dDevice, pd3dCommandList, pszTextureFilename, &UploadBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	else if(Type == TEXTURE_TYPE_DDS)
-		*ppd3dTexture = CreateTextureResourceFromDDSFile(pd3dDevice, pd3dCommandList, pszTextureFilename, &pd3dUploadBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		*ppd3dTexture = CreateTextureResourceFromDDSFile(pd3dDevice, pd3dCommandList, pszTextureFilename, &UploadBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	// SRV 힙 생성
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
@@ -47,7 +50,7 @@ void Texture::CreateTextureAndSRV(ID3D12Device* pd3dDevice, ID3D12GraphicsComman
 
 	// 샘플러 생성
 	D3D12_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;  // 비등방 필터링
+	samplerDesc.Filter = FilterOption;  // 비등방 필터링
 	samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;  // U 방향 랩 모드
 	samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;  // V 방향 랩 모드
 	samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;  // W 방향 랩 모드
@@ -76,6 +79,10 @@ ID3D12Resource* Texture::CreateTextureResourceFromWICFile(ID3D12Device* pd3dDevi
 		std::wcerr << L"Texture resource is NULL after loading: " << pszFileName << std::endl;
 		return nullptr;
 	}
+
+	D3D12_RESOURCE_DESC textureDesc = pd3dTexture->GetDesc();
+	Width = static_cast<int>(textureDesc.Width);
+	Height = static_cast<int>(textureDesc.Height);
 
 	// 중간 버퍼 크기를 계산 (pd3dTexture가 NULL인지 다시 확인)
 	UINT64 nBytes = GetRequiredIntermediateSize(pd3dTexture, 0, 1);
