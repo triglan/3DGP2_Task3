@@ -6,33 +6,43 @@
 #include "CBVUtil.h"
 
 void Framework::Init() {
-	SetBackgroundColor(0.6, 0.6, 0.6);
+	SetBackgroundColor(0.5, 0.5, 0.5);
 
 	CmdList->Reset(CmdAllocator, NULL);
+
+	// 루트 시그니처를 생성한다.
+	DeviceSystem System{ Device, CmdList };
+	DefaultRootSignature = scene.CreateObjectRootSignature(System.Device);
+	LoadShader(DefaultRootSignature, System.Device);
+	LoadSystemMesh(System);
+	LoadMesh(System);
+	LoadTexture(System);
 
 	// scene 초기화
 	// 이 함수에서 모드를 실행하고 쉐이더를 로드한다.
 	// StartMode.cpp의 StartMode 변경 시 시작 모드 변경이 가능하다.
-	scene.Init(Device, CmdList, StartMode);
+	scene.Init(StartMode);
 
 	// CBV를 생성한다.
-	CreateCBVResource(Device);
+	CreateConstantBufferResource(Device);
 
 	// 카메라 초기 설정(완전 초기값)
 	camera.Move(XMFLOAT3(0.0, 0.0, 0.0));
-	camera.SetOffset(XMFLOAT3(5.0f, 5.0f, -10.0f));
+	camera.SetOffset(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	camera.SetViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 1.0f);
 	camera.SetScissorRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-	camera.SetTimeLag(0.1f);
+	camera.SetTimeLag(0.0f);
 	camera.InitStaticMatrix();
-	camera.SetCameraMode(CamMode::TRACK_MODE);
-	
+	camera.SwitchCameraMode(CamMode::MODE1);
 
 	CmdList->Close();
 	ID3D12CommandList* CmdLists[] = { CmdList };
 	CmdQueue->ExecuteCommandLists(1, CmdLists);
 
 	WaitForGpuComplete();
+
+	// 매쉬 및 텍스처 업로드 버퍼 삭제
+	ClearUploadBuffer();
 
 	Timer.Reset();
 }
@@ -77,21 +87,19 @@ void Framework::Update() {
 	CmdList->ClearDepthStencilView(DsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
 	CmdList->OMSetRenderTargets(1, &RtvCPUDescriptorHandle, TRUE, &DsvCPUDescriptorHandle);
 
+	// 루트시그니처를 쉐이더로 전달한다
+	//scene.PrepareRender(CmdList);
+	CmdList->SetGraphicsRootSignature(DefaultRootSignature);
+
 	// 카메라를 업데이트한다.
 	camera.Update(Timer.GetTimeElapsed());
 
-	// 프레임워크를 업데이트한다.
-	// 모든 객체의 업데이트는 이 함수를 통해 이루어진다.
-	scene.Update(Timer.GetTimeElapsed());
-
-	// 객체의 변환 정보를 쉐이더로 전달한다
-	scene.PrepareRender(CmdList);
-
-	// 모든 객체의 렌더링은 이 함수를 통해 이루어진다
-	scene.Render(CmdList);
+	// scene을 업데이트한다.
+	// 모든 객체의 업데이트 및 렌더링은 이 함수를 통해 이루어진다.
+	scene.Routine(Timer.GetTimeElapsed(), CmdList);
 
 	// 삭제 마크가 표시된 객체를 최종삭제한다.
-	scene.UpdateObjectIndex();
+	scene.CompleteCommand();
 
 #ifdef _WITH_PLAYER_TOP
 	CmdList->ClearDepthStencilView(DsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
@@ -172,9 +180,6 @@ Framework::Framework() {
 	for (int i = 0; i < SwapChainBuffers; i++)
 		FenceValues[i] = 0;
 
-	CLIENT_WIDTH = SCREEN_WIDTH;
-	CLIENT_HEIGHT = SCREEN_HEIGHT;
-
 	memset(WindowName, 0, sizeof(WindowName));
 	TitleNameLength = sizeof(TitleName) / sizeof(TCHAR);
 	_tcscpy_s(WindowName, TitleNameLength, TitleName);
@@ -197,10 +202,8 @@ bool Framework::Create(HINSTANCE hInstance, HWND hMainWnd) {
 }
 
 void Framework::CreateSwapChain() {
-	RECT rcClient;
-	::GetClientRect(hWnd, &rcClient);
-	CLIENT_WIDTH = rcClient.right - rcClient.left;
-	CLIENT_HEIGHT = rcClient.bottom - rcClient.top;
+	CLIENT_WIDTH = SCREEN_WIDTH;
+	CLIENT_HEIGHT = SCREEN_HEIGHT;
 
 #ifdef _WITH_CREATE_SWAPCHAIN_FOR_HWND
 	DXGI_SWAP_CHAIN_DESC1 DxgiSwapChainDesc;
@@ -229,7 +232,7 @@ void Framework::CreateSwapChain() {
 	dxgiSwapChainFullScreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	dxgiSwapChainFullScreenDesc.Windowed = TRUE;
 
-	HRESULT hResult = DxgiFactory->CreateSwapChainForHwnd(CmdQueue, hWnd, &DxgiSwapChainDesc, &dxgiSwapChainFullScreenDesc, NULL, (IDXGISwapChain1**)&DxgiSwapChain);
+	HRESULT hResult = DxgiFactory->CreateSwapChainForHwnd(CmdQueue, CaptureState, &DxgiSwapChainDesc, &dxgiSwapChainFullScreenDesc, NULL, (IDXGISwapChain1**)&DxgiSwapChain);
 #else
 	DXGI_SWAP_CHAIN_DESC DxgiSwapChainDesc;
 	::ZeroMemory(&DxgiSwapChainDesc, sizeof(DxgiSwapChainDesc));
@@ -488,27 +491,6 @@ void Framework::Destroy() {
 
 void Framework::ReleaseObjects() {
 	scene.ReleaseObjects();
-}
-
-void Framework::CreateShaderVariables() {}
-
-void Framework::ReleaseShaderVariables() {}
-
-void Framework::UpdateShaderVariables() {
-	/*float CurrentTime = Timer.GetTotalTime();
-	float ElapsedTime = Timer.GetTimeElapsed();
-
-	CmdList->SetGraphicsRoot32BitConstants(0, 1, &CurrentTime, 0);
-	CmdList->SetGraphicsRoot32BitConstants(0, 1, &ElapsedTime, 1);
-
-	POINT CursorPos;
-	::GetCursorPos(&CursorPos);
-	::ScreenToClient(hWnd, &CursorPos);
-	float xCursorPos = (CursorPos.x < 0) ? 0.0f : float(CursorPos.x);
-	float yCursorPos = (CursorPos.y < 0) ? 0.0f : float(CursorPos.y);
-
-	CmdList->SetGraphicsRoot32BitConstants(0, 1, &xCursorPos, 2);
-	CmdList->SetGraphicsRoot32BitConstants(0, 1, &yCursorPos, 3);*/
 }
 
 void Framework::WaitForGpuComplete() {

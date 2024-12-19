@@ -5,15 +5,16 @@
 #include "textureUtil.h"
 
 class TerrainUtil {
-private:
-	Mesh* TerrainMesh{};
-	XMFLOAT4X4 TerrainMatrix = Mat4::Identity();
-
 public:
-	bool CheckFloor(XMFLOAT3 Position);
-	void ClampToFloor(XMFLOAT3& Position, float Offset);
-	float GetFloorHeight(float x, float z, float Offset);
-	void CheckCollision(XMFLOAT3& Position);
+	XMFLOAT4X4 TerrainMatrix = Mat4::Identity();
+	Mesh* TerrainMesh{};
+
 	void InputData(XMFLOAT4X4& TMat, XMFLOAT4X4& RMat, XMFLOAT4X4& SMat, Mesh* MeshData);
+	void InputPosition(XMFLOAT3& PositionValue, float HeightOffsetValue = 0.0);
+	void SetHeightToTerrain(XMFLOAT3& PositionValue);
+	bool CheckCollision(const TerrainUtil& Other);
+
+private:
+	XMFLOAT3 Position{};
+	float HeightOffset{};
 };
-extern TerrainUtil terrainUtil;
