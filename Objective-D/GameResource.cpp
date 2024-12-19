@@ -1,96 +1,74 @@
 #include "GameResource.h"
-#include <random>
+
 // 이 파일은 리소스를 관리한다.
 // 기본적으로 전역 리소스이며, ResourceManager.h에 먼저 extern 선언한 뒤, 이 파일에 아래와 같이 정의하면 된다.
 // Scene::Init()에서 실행된다.
 
-
-Mesh* GunMesh;
-
-// 매쉬를 여기서 로드한다.
-void LoadMesh(DeviceSystem& System) {
-	ImportMesh(System, GunMesh, "Resources//Models//model.bin", MESH_TYPE_BIN);
-}
-/////////////////////////////////////////////////////////////////////////////////
-
-
-Texture* Tex, * SkyboxTex, * WoodTex;
-
-// 택스처를 여기서 로드한다.
-void LoadTexture(DeviceSystem& System) {
-	ImportTexture(System, Tex, L"Resources//Image//Gun.jpg", TEXTURE_TYPE_WIC);
-	ImportTexture(System, WoodTex, L"Resources//Image//Wood.jpg", TEXTURE_TYPE_WIC);
-}
-/////////////////////////////////////////////////////////////////////////////////
-
-
-Object_Shader* ObjectShader;
-Boundbox_Shader* BoundboxShader;
-Image_Shader* ImageShader;
-Line_Shader* LineShader;
-
-// 쉐이더를 여기서 로드한다.
-void LoadShader(ID3D12RootSignature* RootSignature, ID3D12Device* Device) {
-	// 일반 렌더링 쉐이더 생성
-	ObjectShader = new Object_Shader();
-	// 기본 파이프라인 생성
-	ObjectShader->CreateDefaultPS(Device, RootSignature);
-	// 깊이 검사 미포함 파이프라인 생성
-	ObjectShader->CreateNoneDepthPS(Device, RootSignature);
-
-	// 이미지 출력용 파이프라인 생성
-	ImageShader = new Image_Shader();
-	ImageShader->CreateNoneDepthPS(Device, RootSignature);
-
-	// 바운드박스 쉐이더 생성
-	BoundboxShader = new Boundbox_Shader();
-	BoundboxShader->CreateWireframePS(Device, RootSignature);
-	BoundboxShader->CreateDefaultPS(Device, RootSignature);
-
-	// 라인 브러쉬 출력용 쉐이더 생성
-	LineShader = new Line_Shader();
-	LineShader->CreateNoneDepthPS(Device, RootSignature);
-}
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-// 업로드 버퍼를 처리하기 위한 벡터
-std::vector<Mesh*> LoadedMeshList;
-std::vector<Texture*> LoadedTextureList;
-
-Mesh* ImagePannel;
-Mesh* SkyboxMesh;
+////////////////////////////////
+BasicObjectShader* ObjectShader;
+BasicObjectShader* BoundboxShader;
+Texture* LineTex, * GuideTex;
+Texture* TreeTex; // 나무 빌보드 텍스처
 Mesh* BoundMesh;
 Mesh* BoundingSphereMesh;
+////////////////////////////////
 
-// 기본 전역 매쉬 로드
-void LoadSystemMesh(DeviceSystem& System) {
+Mesh* HelicopterBodyMesh, * HelicopterHeadMesh;
+Mesh* TerrainMesh;
+Texture* HelicopterTex, * WoodTex, * SkyboxTex, * TerrainTex;
+
+void CreateShaderResource(ID3D12RootSignature* RootSignature, ID3D12Device* Device, ID3D12GraphicsCommandList* CmdList) {
+	////////////////////////////////
+	// 파이프라인 생성이 곧 쉐이더 설정의 마무리이다.
+	// 일반 렌더링 쉐이더 생성
+	ObjectShader = new BasicObjectShader();
+	ObjectShader->CreateDefaultPipeline(Device, RootSignature);
+
+	// 깊이 검사 미포함 파이프라인 생성
+	ObjectShader->CreateImageDepthPipelineState(Device, RootSignature);
+
+	// 바운드박스 쉐이더 생성
+	BoundboxShader = new BasicObjectShader();
+	BoundboxShader->CreateBoundboxPipeline(Device, RootSignature);
+	////////////////////////////////
+}
+
+void CreateMeshResource(ID3D12Device* Device, ID3D12GraphicsCommandList* CmdList) {
+	////////////////////////////////
+	// 이미지 출력용 패널 생성
 	ImagePannel = new Mesh;
-	ImagePannel->CreateImagePannelMesh(System.Device, System.CmdList);
-	LoadedMeshList.emplace_back(ImagePannel);
+	ImagePannel->CreateImagePannelMesh(Device, CmdList);
 
 	// 스카이박스 출력용 매쉬 생성
 	SkyboxMesh = new Mesh;
-	SkyboxMesh->CreateSkyboxMesh(System.Device, System.CmdList);
-	LoadedMeshList.emplace_back(SkyboxMesh);
+	SkyboxMesh->CreateSkyboxMesh(Device, CmdList);
 
 	// 바운드박스 출력용 매쉬 생성
 	BoundMesh = new Mesh;
-	BoundMesh->CreateBoundboxMesh(System.Device, System.CmdList);
-	LoadedMeshList.emplace_back(BoundMesh);
+	BoundMesh->CreateBoundboxMesh(Device, CmdList);
 
 	// 바운드스페어 출력용 매쉬 생성
-	BoundingSphereMesh = new Mesh(System.Device, System.CmdList, "Resources//SystemResources//Models//BoundingSphereMesh.txt", MESH_TYPE_TEXT);
-	LoadedMeshList.emplace_back(BoundingSphereMesh);
+	BoundingSphereMesh = new Mesh(Device, CmdList, "Resources//SystemResources//Models//BoundingSphereMesh.txt", MESH_TYPE_TEXT);
+	////////////////////////////////
+
+	// 헬리콥터
+	HelicopterBodyMesh = new Mesh(Device, CmdList, "Resources//Models//GunShip.bin", MESH_TYPE_BIN);
+	HelicopterHeadMesh = new Mesh(Device, CmdList, "Resources//Models//Rotor.bin", MESH_TYPE_BIN);
+
+	// 지형
+	TerrainMesh = new Mesh(Device, CmdList, "Resources//Models//terrain.bin", MESH_TYPE_BIN);
 }
 
-// 업로드 버퍼를 삭제하고, 벡터를 비운다.
-void ClearUploadBuffer() {
-	for (auto const& MeshPtr : LoadedMeshList)
-		MeshPtr->ReleaseUploadBuffers();
+void CreateTextureResource(ID3D12Device* Device, ID3D12GraphicsCommandList* CmdList) {
+	////////////////////////////////
+	// guide
+	LineTex = new Texture(Device, CmdList, L"Resources//SystemResources//Textures//line_tex.png", TEXTURE_TYPE_WIC);
+	GuideTex = new Texture(Device, CmdList, L"Resources//Image//guide.png", TEXTURE_TYPE_WIC);
+	////////////////////////////////
 
-	for (auto const& TexturePtr : LoadedTextureList)
-		TexturePtr->ReleaseUploadBuffers();
-
-	LoadedMeshList.clear();
-	LoadedTextureList.clear();
+	TreeTex = new Texture(Device, CmdList, L"Resources//Image//tree.png", TEXTURE_TYPE_WIC);
+	TerrainTex = new Texture(Device, CmdList, L"Resources//Image//grass.jpg", TEXTURE_TYPE_WIC);
+	HelicopterTex = new Texture(Device, CmdList, L"Resources//Image//GunShip.png", TEXTURE_TYPE_WIC);
+	WoodTex = new Texture(Device, CmdList, L"Resources//Image//Wood.jpg", TEXTURE_TYPE_WIC);
+	SkyboxTex = new Texture(Device, CmdList, L"Resources//Image//skytex.png", TEXTURE_TYPE_WIC);
 }

@@ -19,12 +19,13 @@ Framework framework;
 Scene scene;
 Camera camera;
 MouseUtil mouse;
+TerrainUtil terrainUtil;
 
-// 공용 커맨드 리스트
-ID3D12GraphicsCommandList* ObjectCmdList;
+// 이미지 출력을 위한 패널 매쉬
+Mesh* ImagePannel;
 
-// 기본 루트 시그니처
-ID3D12RootSignature* DefaultRootSignature;
+// 스카이박스
+Mesh* SkyboxMesh;
 
 HINSTANCE						AppInstance;
 TCHAR							Title[MAX_LOADSTRING];
@@ -127,6 +128,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
 	if (!START_WITH_FULL_SCREEN)
 		framework.SwitchToWindowMode(MainWnd);
 
+
 	return(TRUE);
 }
 
@@ -159,11 +161,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPara
 	switch (nMessageID) {
 		// 윈도우 사이즈 변경이 감지되면 카메라 행렬을 새로 업데이트한다.
 	case WM_SIZE:
-	{
 		SCREEN_WIDTH = LOWORD(lParam);
 		SCREEN_HEIGHT = HIWORD(lParam);
-		camera.GenerateStaticMatrix();
-	}
+		camera.UpdateStaticMatrix();
 		break;
 
 	case WM_LBUTTONDOWN:
