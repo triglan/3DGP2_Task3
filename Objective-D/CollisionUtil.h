@@ -2,9 +2,11 @@
 #include "DirectX_3D.h"
 #include "MeshUtil.h"
 
+class AABB;
+class Range;
+
 class OOBB {
 private:
-	BoundingOrientedBox oobb = BoundingOrientedBox();
 	bool Collide{};
 
 	XMFLOAT4X4 TranslateMatrix{};
@@ -14,17 +16,18 @@ private:
 	XMFLOAT3 BoundboxColor{ 1.0, 0.0, 0.0 };
 
 public:
+	BoundingOrientedBox oobb = BoundingOrientedBox();
 	void Update(Mesh* MeshPtr, XMFLOAT4X4& TMatrix, XMFLOAT4X4& RMatrix, XMFLOAT4X4& SMatrix);
-	void Render(ID3D12GraphicsCommandList* CmdList);
+	void Update(XMFLOAT3& Position, XMFLOAT3& Size, XMFLOAT3& Rotation);
+	void Render();
+	bool CheckCollision(const AABB& Other);
+	bool CheckCollision(const Range& Other);
 	bool CheckCollision(const OOBB& Other);
-	bool CheckCollision(const BoundingBox& Other);
-	bool CheckCollision(const BoundingSphere& Other);
 };
 
 
 class AABB {
 private:
-	BoundingBox aabb = BoundingBox();
 	bool Collide{};
 
 	XMFLOAT4X4 TranslateMatrix{};
@@ -33,18 +36,20 @@ private:
 	XMFLOAT3 BoundboxColor{ 1.0, 0.0, 0.0 };
 
 public:
-	void Update(XMFLOAT3 Position, XMFLOAT3 Size);
-	void Render(ID3D12GraphicsCommandList* CmdList);
+	BoundingBox aabb = BoundingBox();
+	void Update(XMFLOAT3& Position, XMFLOAT3& Size);
+	void Render();
 	bool CheckCollision(const AABB& Other);
-	bool CheckCollision(const BoundingSphere& Other);
-	bool CheckCollision(const BoundingOrientedBox& Other);
+	bool CheckCollision(const OOBB& Other);
+	bool CheckCollision(const Range& Other);
 };
 
 
 class Range {
 private:
-	BoundingSphere sphere = BoundingSphere();
 	bool Collide{};
+
+	float Size{};
 
 	XMFLOAT4X4 TranslateMatrix{};
 	XMFLOAT4X4 ScaleMatrix{};
@@ -52,9 +57,10 @@ private:
 	XMFLOAT3 BoundboxColor{ 1.0, 0.0, 0.0 };
 
 public:
-	void Update(const XMFLOAT3& Center, float Size);
+	BoundingSphere sphere = BoundingSphere();
+	void Update(const XMFLOAT3& Center, float SizeValue);
+	void Render();
 	bool CheckCollision(const Range& Other);
-	bool CheckCollision(const BoundingBox& Other);
-	bool CheckCollision(const BoundingOrientedBox& Other);
-	void Render(ID3D12GraphicsCommandList* CmdList);
+	bool CheckCollision(const AABB& Other);
+	bool CheckCollision(const OOBB& Other);
 };

@@ -1,13 +1,7 @@
 #include "Mode1.h"
 #include "MouseUtil.h"
-#include <random>
 
-#include "Control.h"
-#include "enemy.h"
-#include "Terrain.h"
-#include "CameraController.h"
-#include "Tree.h"
-#include "Skybox.h"
+#include "TestObject.h"
 
 // 해당 cpp파일과 h파일은 특정한 모드를 실행하고, 해당 모드에 존재하는 객체들을 컨트롤하기 위한 파일이다.
 // 반드시 cpp, h파일로 분리되어있어야 하며, 각 모드에 따라 네임스페이스로 구분되어야한다.
@@ -20,29 +14,9 @@
 // 간편한 모드 코드 작성을 위해 [ Template ] 필터에 템플릿을 만들어 두었으니 복붙한 후 함수 이름과 네임스페이스 이름을 바꾸면 된다.
 
 void Mode1::Start() {
-	// 게임 화면에서는 배경을 회색으로 변경
-	SetBackgroundColor(0.3, 0.31, 0.3);
 	// 필요한 객체 추가
-	scene.AddObject(new CameraController, "cam_controller", LAYER_1);
-	scene.AddObject(new Control, "control", LAYER_1);
-	scene.AddObject(new Enemy, "enemy", LAYER_1);
-	scene.AddObject(new Skybox, "skybox", LAYER_1);
-	for (int i = 0; i < 25; ++i)// x,z : -240 ~ 240
-		scene.AddObject(new Terrain(i / 5 * 120 - 240, i % 5 * 120 - 240), "terrain", LAYER_1);
-
-	std::random_device rd{};
-	std::uniform_real_distribution<float> DistX(-200.0, 200.0);
-	std::uniform_real_distribution<float> DistY(-200.0, 200.0);
-
-	// 랜덤 위치에 나무 15그루를 추가한다
-	for (int i = 0; i < 100; ++i) {
-		float RandX, RandZ;
-		RandX = DistX(rd);
-		RandZ = DistY(rd);
-		scene.AddObject(new Tree(RandX, RandZ), "tree", LAYER_1);
-	}
-
-	//scene.AddObject(new Terrain, "terrain", LAYER_1);
+	scene.AddObject(new TestObject, "test_object", LAYER1);
+	
 	// scene에 컨트롤러 및 모드 소멸자 등록
 	RegisterController();
 
@@ -55,30 +29,31 @@ void Mode1::Destructor() {
 }
 
 void Mode1::KeyboardController(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) {
-	// esc 누를 시 프로그램 종료
-	if (nMessageID == WM_KEYDOWN && wParam == VK_ESCAPE)
-		scene.SwitchMode(HomeMode::Start);//Home모드로 이동
+	KeyEvent Event{ hWnd, nMessageID, wParam, lParam };
 
-	// 객체로 키보드 입력
-	scene.InputKey(hWnd, nMessageID, wParam, lParam, "control");
-	scene.InputKey(hWnd, nMessageID, wParam, lParam, "cam_controller");
+	// esc 누를 시 프로그램 종료
+	if (Event.Type == WM_KEYDOWN && Event.Key == VK_ESCAPE)
+		// 프로그램을 종료하는 Scene 멤버 함수
+		scene.Exit();
 }
 
 //  마우스 모션을 지정된 객체 포인터로 전달한다
 void Mode1::MouseMotionController(HWND hWnd) {
+	MotionEvent Event{ hWnd, mouse.MotionPosition };
+
 	// 마우스 좌표를 뷰포트 좌표로 변환한다.
 	mouse.UpdateMousePosition(hWnd);
 
 	// 객체로 마우스 모션 입력
-	scene.InputMouseMotion(hWnd, "control");
-	scene.InputMouseMotion(hWnd, "cam_controller");
+	scene.InputMouseMotion("test_object", Event);
 }
 
 // 마우스 버튼 클릭 이벤트를 지정된 객체 포인터로 전달한다
 void Mode1::MouseController(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) {
+	MouseEvent Event{ hWnd, nMessageID, wParam, lParam };
+
 	// 객체로 마우스 입력
-	scene.InputMouse(hWnd, nMessageID, wParam, lParam, "control");
-	scene.InputMouse(hWnd, nMessageID, wParam, lParam, "cam_controller");
+	scene.InputMouse("test_object", Event);
 }
 
 // scene에 컨트롤러 및 모드 소멸자 등록
