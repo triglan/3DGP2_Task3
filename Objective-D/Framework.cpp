@@ -6,7 +6,7 @@
 #include "CBVUtil.h"
 
 void Framework::Init() {
-	SetBackgroundColor(0.5, 0.5, 0.5);
+	SetBackgroundColor(0.6, 0.6, 0.6);
 
 	CmdList->Reset(CmdAllocator, NULL);
 
@@ -28,12 +28,12 @@ void Framework::Init() {
 
 	// 카메라 초기 설정(완전 초기값)
 	camera.Move(XMFLOAT3(0.0, 0.0, 0.0));
-	camera.SetOffset(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	camera.SetOffset(XMFLOAT3(0.0f, 0.0f, -10.0f));//++오프셋값
 	camera.SetViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 1.0f);
 	camera.SetScissorRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	camera.SetTimeLag(0.0f);
 	camera.InitStaticMatrix();
-	camera.SwitchCameraMode(CamMode::MODE1);
+	camera.SwitchCameraMode(CamMode::TRACK_MODE);
 
 	CmdList->Close();
 	ID3D12CommandList* CmdLists[] = { CmdList };

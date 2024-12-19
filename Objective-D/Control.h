@@ -29,30 +29,30 @@ public:
 	OOBB oobb;
 	Range range;
 	//Range GetRange() { return range; }
-	OOBB GetRANGE;
+	OOBB GetRANGE;//--
 
 	Vector Vec{};
 
 	Control() {
-		Math::InitVector(Vec);
-		line.SetColor(1.0, 1.0, 1.0);
+		//Math::InitVector(Vec);
+		//line.SetColor(1.0, 1.0, 1.0);
 	}
 
-	XMFLOAT3 GetUp() {
-		return Vec.Up;
-	}
+	//XMFLOAT3 GetUp() {
+	//	return Vec.Up;
+	//}
 
-	XMFLOAT3 GetLook() {
-		return Vec.Look;
-	}
+	//XMFLOAT3 GetLook() {
+	//	return Vec.Look;
+	//}
 
-	XMFLOAT3 GetRight() {
-		return Vec.Right;
-	}
+	//XMFLOAT3 GetRight() {
+	//	return Vec.Right;
+	//}
 
-	XMFLOAT3 GetPosition() {
-		return Position;
-	}
+	//XMFLOAT3 GetPosition() {
+	//	return Position;
+	//}
 
 	void InputMouseMotion(HWND hwnd, POINT MotionPosition) {
 		if (GetCapture() == hwnd) {
@@ -110,70 +110,63 @@ public:
 
 
 		//Move
-		if (MoveForward) {
-			Position.x += Vec.Look.x * FT * 40;
-			Position.y += Vec.Look.y * FT * 40;
-			Position.z += Vec.Look.z * FT * 40;
-		}
-		if (MoveBackward || ColBack) {
-			Position.x -= Vec.Look.x * FT * 40;
-			Position.y -= Vec.Look.y * FT * 40;
-			Position.z -= Vec.Look.z * FT * 40;
-		}
-		if (MoveRight) {
-			Position.x += Vec.Right.x * FT * 40;
-			Position.y += Vec.Right.y * FT * 40;
-			Position.z += Vec.Right.z * FT * 40;
-		}
-		if (MoveLeft) {
-			Position.x -= Vec.Right.x * FT * 40;
-			Position.y -= Vec.Right.y * FT * 40;
-			Position.z -= Vec.Right.z * FT * 40;
-		}
-		//날개 회전
-		WingRotation += FT * 2000;
+		//if (MoveForward) {
+		//	Position.x += Vec.Look.x * FT * 40;
+		//	Position.y += Vec.Look.y * FT * 40;
+		//	Position.z += Vec.Look.z * FT * 40;
+		//}
+		//if (MoveBackward || ColBack) {
+		//	Position.x -= Vec.Look.x * FT * 40;
+		//	Position.y -= Vec.Look.y * FT * 40;
+		//	Position.z -= Vec.Look.z * FT * 40;
+		//}
+		//if (MoveRight) {
+		//	Position.x += Vec.Right.x * FT * 40;
+		//	Position.y += Vec.Right.y * FT * 40;
+		//	Position.z += Vec.Right.z * FT * 40;
+		//}
+		//if (MoveLeft) {
+		//	Position.x -= Vec.Right.x * FT * 40;
+		//	Position.y -= Vec.Right.y * FT * 40;
+		//	Position.z -= Vec.Right.z * FT * 40;
+		//}
+		////날개 회전
+		//WingRotation += FT * 2000;
 		
 	}
 
 	void Render(CommandList CmdList) {
 		//헬기 몸통
-		InitMatrix(CmdList, RENDER_TYPE_PERS);
+		//InitRenderState(RENDER_TYPE_3D);
 
-		Transform::Scale(ScaleMatrix, 0.5, 0.5, 0.5);
-		Transform::Move(TranslateMatrix, Position.x, Position.y, Position.z);
+		//Transform::Scale(ScaleMatrix, 0.5, 0.5, 0.5);
+		//Transform::Move(TranslateMatrix, Position.x, Position.y, Position.z);
 
-		Transform::Rotate(TranslateMatrix, Tilt.x, HeliRotation.y, Tilt.z);
-		Transform::Rotate(TranslateMatrix, HeliRotation.x, 0.0, 0.0);
-		Transform::Rotate(TranslateMatrix, 0.0, 0.0, HeliRotation.z);
+		//Transform::Rotate(TranslateMatrix, Tilt.x, HeliRotation.y, Tilt.z);
+		//Transform::Rotate(TranslateMatrix, HeliRotation.x, 0.0, 0.0);
+		//Transform::Rotate(TranslateMatrix, 0.0, 0.0, HeliRotation.z);
 
-		FlipTexture(CmdList, FLIP_TYPE_V);
-		RenderMesh(CmdList, HelicopterBodyMesh, HelicopterTex, ObjectShader);
+		////FlipTexture(FLIP_TYPE_V);
+		//Render3D(HelicopterBodyMesh, HelicopterTex);
 
-		//헬기 머리
-		Transform::Move(TranslateMatrix, 0.0, 2.0, 0.0);
-		Transform::Rotate(TranslateMatrix, 0.0, WingRotation, 0.0);
-		RenderMesh(CmdList, HelicopterHeadMesh, HelicopterTex, ObjectShader);
+		////헬기 머리
+		//Transform::Move(TranslateMatrix, 0.0, 2.0, 0.0);
+		//Transform::Rotate(TranslateMatrix, 0.0, WingRotation, 0.0);
+		//InitRenderState(RENDER_TYPE_3D);
 
-		Math::UpdateVector(Vec, HeliRotation.x, HeliRotation.y, HeliRotation.z);
+		//Math::UpdateVector(Vec, HeliRotation.x, HeliRotation.y, HeliRotation.z);
 
 
-		//스카이박스
-		//InitMatrix(CmdList, RENDER_TYPE_PERS);
-		//Transform::Scale(ScaleMatrix, 500, 500, 500);
-		//RenderMesh(CmdList, SkyboxMesh, SkyboxTex, ObjectShader, 1.0f);
-
-		// 바운드 스페어 출력
-		range.Update(Position, 10);
-		static int i = 0;
-		ColBack = false;
-		if (auto enemy_object = scene.Find("enemy"); enemy_object) {
-			if (range.CheckCollision(enemy_object->GetRange())) {
-				ColBack = true;
-				std::cout << i << std::endl;
-			}
-		}
-		//range.Render(CmdList);
-
+		//// 바운드 스페어 출력
+		//range.Update(Position, 10);
+		//static int i = 0;
+		//ColBack = false;
+		//if (auto enemy_object = scene.Find("enemy"); enemy_object) {
+		//	if (range.CheckCollision(enemy_object->GetRange())) {
+		//		ColBack = true;
+		//		std::cout << i << std::endl;
+		//	}
+		//}
 
 	}
 };

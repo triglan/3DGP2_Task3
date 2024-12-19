@@ -44,3 +44,9 @@ bool TerrainUtil::CheckCollision(const TerrainUtil& Other) {
 
 	return false;
 }
+
+float TerrainUtil::GetFloorHeight(float x, float z, float Offset) {
+	if (TerrainMesh)
+		return TerrainMesh->GetHeightAtPosition(TerrainMesh, x, z, TerrainMatrix) + Offset;
+	return 0.0;
+}

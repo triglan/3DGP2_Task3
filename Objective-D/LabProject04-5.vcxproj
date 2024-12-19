@@ -150,20 +150,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BoundboxShader.h" />
+    <ClInclude Include="CameraController.h" />
     <ClInclude Include="CameraUtil.h" />
     <ClInclude Include="ConstantBufferData.h" />
     <ClInclude Include="ConstantBuffers.h" />
     <ClInclude Include="CBVUtil.h" />
     <ClInclude Include="CollisionUtil.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Control.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DDSTextureLoader12.h" />
+    <ClInclude Include="enemy.h" />
     <ClInclude Include="Framework.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="Guide.h" />
     <ClInclude Include="ImageShader.h" />
     <ClInclude Include="LineBrush.h" />
     <ClInclude Include="LineShader.h" />
     <ClInclude Include="MathUtil.h" />
+    <ClInclude Include="Mode0.h" />
     <ClInclude Include="Mode1.h" />
     <ClInclude Include="MouseUtil.h" />
     <ClInclude Include="Objective-D.h" />
@@ -178,13 +183,16 @@
     <ClInclude Include="ObjectShader.h" />
     <ClInclude Include="SettingRootSignature.h" />
     <ClInclude Include="ShaderUtil.h" />
+    <ClInclude Include="Skybox.h" />
     <ClInclude Include="StartMode.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Terrain.h" />
     <ClInclude Include="TerrainUtil.h" />
     <ClInclude Include="TestObject.h" />
     <ClInclude Include="TextureUtil.h" />
     <ClInclude Include="TimerUtil.h" />
     <ClInclude Include="TransformUtil.h" />
+    <ClInclude Include="Tree.h" />
     <ClInclude Include="WICTextureLoader12.h" />
   </ItemGroup>
   <ItemGroup>
@@ -203,6 +211,7 @@
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="Meshes.cpp" />
     <ClCompile Include="MeshUtil.cpp" />
+    <ClCompile Include="Mode0.cpp" />
     <ClCompile Include="Mode1.cpp" />
     <ClCompile Include="MouseUtil.cpp" />
     <ClCompile Include="ObjectShader.cpp" />
@@ -236,10 +245,6 @@
   <ItemGroup>
     <Image Include="LabProject04-5.ico" />
     <Image Include="small.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ModeCodeTemplate.txt" />
-    <Text Include="MotionCode.txt" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\SystemResources\Shader\BoundboxShader.hlsl">

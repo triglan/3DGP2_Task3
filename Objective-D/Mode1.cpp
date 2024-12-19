@@ -1,7 +1,14 @@
 #include "Mode1.h"
 #include "MouseUtil.h"
+#include <random>
 
-#include "TestObject.h"
+#include "TestObject.h"//--
+#include "Control.h"
+#include "enemy.h"
+#include "Terrain.h"
+#include "CameraController.h"
+#include "Tree.h"
+#include "Skybox.h"
 
 // 해당 cpp파일과 h파일은 특정한 모드를 실행하고, 해당 모드에 존재하는 객체들을 컨트롤하기 위한 파일이다.
 // 반드시 cpp, h파일로 분리되어있어야 하며, 각 모드에 따라 네임스페이스로 구분되어야한다.
@@ -14,9 +21,27 @@
 // 간편한 모드 코드 작성을 위해 [ Template ] 필터에 템플릿을 만들어 두었으니 복붙한 후 함수 이름과 네임스페이스 이름을 바꾸면 된다.
 
 void Mode1::Start() {
-	// 필요한 객체 추가
+	SetBackgroundColor(0.5, 0.5, 0.5);
 	scene.AddObject(new TestObject, "test_object", LAYER1);
-	
+
+	scene.AddObject(new CameraController, "cam_controller", LAYER1);
+	scene.AddObject(new Control, "control", LAYER1);
+	scene.AddObject(new Enemy, "enemy", LAYER1);
+	scene.AddObject(new Skybox, "skybox", LAYER1);
+	for (int i = 0; i < 25; ++i)// x,z : -240 ~ 240
+		scene.AddObject(new Terrain(i / 5 * 120 - 240, i % 5 * 120 - 240), "terrain", LAYER1);
+
+	std::random_device rd{};
+	std::uniform_real_distribution<float> DistX(-200.0, 200.0);
+	std::uniform_real_distribution<float> DistY(-200.0, 200.0);
+
+	for (int i = 0; i < 100; ++i) {
+		float RandX, RandZ;
+		RandX = DistX(rd);
+		RandZ = DistY(rd);
+		scene.AddObject(new Tree(RandX, RandZ), "tree", LAYER1);
+	}
+
 	// scene에 컨트롤러 및 모드 소멸자 등록
 	RegisterController();
 
@@ -35,6 +60,9 @@ void Mode1::KeyboardController(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM
 	if (Event.Type == WM_KEYDOWN && Event.Key == VK_ESCAPE)
 		// 프로그램을 종료하는 Scene 멤버 함수
 		scene.Exit();
+
+	scene.InputKey("control", Event);
+	scene.InputKey("cam_controller", Event);
 }
 
 //  마우스 모션을 지정된 객체 포인터로 전달한다
@@ -45,7 +73,9 @@ void Mode1::MouseMotionController(HWND hWnd) {
 	mouse.UpdateMousePosition(hWnd);
 
 	// 객체로 마우스 모션 입력
-	scene.InputMouseMotion("test_object", Event);
+	//scene.InputMouseMotion("test_object", Event);//--
+	scene.InputMouseMotion("control", Event);
+	scene.InputMouseMotion("cam_controller", Event);
 }
 
 // 마우스 버튼 클릭 이벤트를 지정된 객체 포인터로 전달한다
@@ -53,7 +83,9 @@ void Mode1::MouseController(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 	MouseEvent Event{ hWnd, nMessageID, wParam, lParam };
 
 	// 객체로 마우스 입력
-	scene.InputMouse("test_object", Event);
+	//--scene.InputMouse("test_object", Event);
+	scene.InputMouse("control", Event);
+	scene.InputMouse("cam_controller", Event);
 }
 
 // scene에 컨트롤러 및 모드 소멸자 등록

@@ -143,6 +143,12 @@
     <Filter Include="[5]____________[ Objective-D ]\[6] - [ Util ]\[ Constant Buffer Util ]">
       <UniqueIdentifier>{8a9a0685-ce18-4df7-bf17-ba13635518e6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="[4]____________[ Game Resource ]\[1] COMMON">
+      <UniqueIdentifier>{b88cbfa0-5d66-4b53-8e8d-e9751872bf91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="[1]____________[ Game Mode ]\[ Mode0 ]">
+      <UniqueIdentifier>{85de91ae-8ad5-483b-b298-bd9f748d78ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scene.h">
@@ -250,11 +256,35 @@
     <ClInclude Include="LineShader.h">
       <Filter>[5]____________[ Objective-D ]\[6] - [ Util ]\[ Shader Util ]\[2][ Shaders ]\[ Line Shader ]</Filter>
     </ClInclude>
-    <ClInclude Include="GameResource.h">
-      <Filter>[4]____________[ Game Resource ]</Filter>
-    </ClInclude>
     <ClInclude Include="SettingRootSignature.h">
       <Filter>[5]____________[ Objective-D ]\[2] - [ Root Signature ]</Filter>
+    </ClInclude>
+    <ClInclude Include="GameResource.h">
+      <Filter>[4]____________[ Game Resource ]\[1] COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraController.h">
+      <Filter>[2]____________[ Game Object ]\[1] [ CustomObject ]</Filter>
+    </ClInclude>
+    <ClInclude Include="Control.h">
+      <Filter>[2]____________[ Game Object ]\[1] [ CustomObject ]</Filter>
+    </ClInclude>
+    <ClInclude Include="enemy.h">
+      <Filter>[2]____________[ Game Object ]\[1] [ CustomObject ]</Filter>
+    </ClInclude>
+    <ClInclude Include="Guide.h">
+      <Filter>[2]____________[ Game Object ]\[1] [ CustomObject ]</Filter>
+    </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>[2]____________[ Game Object ]\[1] [ CustomObject ]</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>[2]____________[ Game Object ]\[1] [ CustomObject ]</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree.h">
+      <Filter>[2]____________[ Game Object ]\[1] [ CustomObject ]</Filter>
+    </ClInclude>
+    <ClInclude Include="Mode0.h">
+      <Filter>[1]____________[ Game Mode ]\[ Mode0 ]</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -357,14 +387,17 @@
     <ClCompile Include="LineShader.cpp">
       <Filter>[5]____________[ Objective-D ]\[6] - [ Util ]\[ Shader Util ]\[2][ Shaders ]\[ Line Shader ]</Filter>
     </ClCompile>
-    <ClCompile Include="GameResource.cpp">
-      <Filter>[4]____________[ Game Resource ]</Filter>
-    </ClCompile>
     <ClCompile Include="SettingRootSignature.cpp">
       <Filter>[5]____________[ Objective-D ]\[2] - [ Root Signature ]</Filter>
     </ClCompile>
     <ClCompile Include="WinMain.cpp">
       <Filter>[5]____________[ Objective-D ]\[5] - [ System ]\[ WinAPI ]</Filter>
+    </ClCompile>
+    <ClCompile Include="GameResource.cpp">
+      <Filter>[4]____________[ Game Resource ]\[1] COMMON</Filter>
+    </ClCompile>
+    <ClCompile Include="Mode0.cpp">
+      <Filter>[1]____________[ Game Mode ]\[ Mode0 ]</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -379,10 +412,6 @@
     <Image Include="LabProject04-5.ico">
       <Filter>[5]____________[ Objective-D ]\[5] - [ System ]\[ WinAPI ]\[ Res ]</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="MotionCode.txt" />
-    <Text Include="ModeCodeTemplate.txt" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\SystemResources\Shader\ObjectShader.hlsl">

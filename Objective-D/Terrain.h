@@ -17,16 +17,13 @@ public:
 
 	void Render(CommandList CmdList) {
 		// 터레인은 정적 오브젝트이므로 행렬 초기화 및 변환을 실행하지 않는다.
-		EnableLight(CmdList);
-		FlipTexture(CmdList, false);
+		//EnableLight(CmdList);
+		//FlipTexture(CmdList, false);
 		camera.SetToDefaultMode();
 		SetColor(0.0, 0.0, 0.0);
 
-		RenderMesh(CmdList, TerrainMesh, TerrainTex, ObjectShader);
-
+		Render3D(TerrainMesh, TerrainTex);
 
 		terrainUtil.InputData(TranslateMatrix, RotateMatrix, ScaleMatrix, TerrainMesh);
-
-
 	}
 };

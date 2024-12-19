@@ -4,22 +4,42 @@
 // 기본적으로 전역 리소스이며, ResourceManager.h에 먼저 extern 선언한 뒤, 이 파일에 아래와 같이 정의하면 된다.
 // Scene::Init()에서 실행된다.
 
+////////////////////////////////
 
+
+////////////////////////////////
+Mesh* HelicopterBodyMesh, * HelicopterHeadMesh;
+Mesh* TerrainMesh;
+////////////////////////////////
 Mesh* GunMesh;
 
 // 매쉬를 여기서 로드한다.
 void LoadMesh(DeviceSystem& System) {
 	ImportMesh(System, GunMesh, "Resources//Models//model.bin", MESH_TYPE_BIN);
+
+	// 헬리콥터
+	ImportMesh(System, HelicopterBodyMesh, "Resources//Models//GunShip.bin", MESH_TYPE_BIN);
+	ImportMesh(System, HelicopterHeadMesh, "Resources//Models//Rotor.bin", MESH_TYPE_BIN);
+	// 지형
+	ImportMesh(System, TerrainMesh, "Resources//Models//terrain.bin", MESH_TYPE_BIN);
 }
 /////////////////////////////////////////////////////////////////////////////////
 
 
 Texture* Tex, * SkyboxTex, * WoodTex;
+Texture * GuideTex, * TreeTex;
+Texture* HelicopterTex, * TerrainTex;
 
 // 택스처를 여기서 로드한다.
 void LoadTexture(DeviceSystem& System) {
 	ImportTexture(System, Tex, L"Resources//Image//Gun.jpg", TEXTURE_TYPE_WIC);
 	ImportTexture(System, WoodTex, L"Resources//Image//Wood.jpg", TEXTURE_TYPE_WIC);
+
+	ImportTexture(System, TerrainTex, L"Resources//Image//grass.jpg", TEXTURE_TYPE_WIC);
+	ImportTexture(System, GuideTex, L"Resources//Image//guide.png", TEXTURE_TYPE_WIC);
+	ImportTexture(System, HelicopterTex, L"Resources//Image//GunShip.png", TEXTURE_TYPE_WIC);
+	ImportTexture(System, SkyboxTex, L"Resources//Image//skytex.png", TEXTURE_TYPE_WIC);
+	ImportTexture(System, TreeTex, L"Resources//Image//tree.png", TEXTURE_TYPE_WIC);
 }
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -51,7 +71,7 @@ void LoadShader(ID3D12RootSignature* RootSignature, ID3D12Device* Device) {
 	LineShader = new Line_Shader();
 	LineShader->CreateNoneDepthPS(Device, RootSignature);
 }
-/////////////////////////////////////////////////////////////////////////////////
+
 /////////////////////////////////////////////////////////////////////////////////
 // 업로드 버퍼를 처리하기 위한 벡터
 std::vector<Mesh*> LoadedMeshList;

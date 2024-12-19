@@ -19,6 +19,7 @@ Framework framework;
 Scene scene;
 Camera camera;
 MouseUtil mouse;
+TerrainUtil terrainUtil;
 
 // 공용 커맨드 리스트
 ID3D12GraphicsCommandList* ObjectCmdList;

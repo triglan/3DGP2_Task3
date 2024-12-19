@@ -10,13 +10,15 @@ public:
 	}
 
 	void Render(CommandList CmdList) {
-		RenderType = RENDER_TYPE_PERS;
-		DisableLight(CmdList);
+		InitRenderState(RENDER_TYPE_3D);
+
+		SetLightUse(DISABLE_LIGHT);
 		ObjectAlpha = 1.0f;
 		camera.SetToDefaultMode();
 		SetColor(0.0, 0.0, 0.0);
-		FlipTexture(CmdList, FLIP_TYPE_NONE);
+		FlipTexture(FLIP_TYPE_NONE);
 
-		RenderMesh(CmdList, SkyboxMesh, SkyboxTex, ObjectShader);
+		Render3D(SkyboxMesh, SkyboxTex);
+
 	}
 };

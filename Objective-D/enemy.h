@@ -87,7 +87,7 @@ public:
 
 	void Render(CommandList CmdList) {
 		//헬기 몸통
-		InitMatrix(CmdList, RENDER_TYPE_PERS);
+		InitRenderState(RENDER_TYPE_3D);
 
 		Transform::Scale(ScaleMatrix, 0.5, 0.5, 0.5);
 		Transform::Move(TranslateMatrix, Position.x, Position.y, Position.z);
@@ -96,13 +96,13 @@ public:
 		Transform::Rotate(TranslateMatrix, HeliRotation.x, 0.0, 0.0);
 		Transform::Rotate(TranslateMatrix, 0, 0.0, HeliRotation.z);
 
-		FlipTexture(CmdList, FLIP_TYPE_V); 
-		RenderMesh(CmdList, HelicopterBodyMesh, HelicopterTex, ObjectShader);
+		FlipTexture(FLIP_TYPE_V); 
+		Render3D(HelicopterBodyMesh, HelicopterTex);
 
 		//헬기 머리
 		Transform::Move(TranslateMatrix, 0.0, 2.0, 0.0);
 		Transform::Rotate(TranslateMatrix, 0.0, WingRotation, 0.0);
-		RenderMesh(CmdList, HelicopterHeadMesh, HelicopterTex, ObjectShader);
+		Render3D(HelicopterHeadMesh, HelicopterTex);
 
 		// 바운드 스페어 출력
 		range.Update(Position, 10);

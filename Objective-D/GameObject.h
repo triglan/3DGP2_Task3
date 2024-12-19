@@ -70,7 +70,8 @@ public:
 	virtual XMFLOAT3 GetPosition() { return {}; }
 	virtual OOBB GetAABB() { return {}; }
 	virtual OOBB GetOOBB() { return {}; }
-	virtual OOBB GetRange() { return {}; }
+	//virtual OOBB GetRange() { return {}; }
+	virtual Range GetRange() { return {}; }
 	virtual Vector GetVectorSet() { return {}; }
 	virtual TerrainUtil GetTerrain() { return {}; }
 

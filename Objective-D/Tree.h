@@ -22,10 +22,10 @@ public:
 	}
 
 	void Render(CommandList CmdList) {
-		InitMatrix(CmdList, RENDER_TYPE_PERS);
+		InitRenderState(RENDER_TYPE_3D);
 
 		// 조명 비활성화
-		DisableLight(CmdList);
+		SetLightUse(DISABLE_LIGHT);
 
 		Transform::Move(TranslateMatrix, Position.x, Position.y - 40, Position.z);
 		Transform::Scale(ScaleMatrix, 10.0, 10.0, 1.0);
@@ -34,7 +34,7 @@ public:
 		// 카메라를 바라보도록 한다.
 		Math::BillboardLookAt(RotateMatrix, Vec, Position, camera.GetPosition());
 
-		FlipTexture(CmdList, FLIP_TYPE_V);
-		RenderMesh(CmdList, ImagePannel, TreeTex, ObjectShader);
+		FlipTexture(FLIP_TYPE_V);
+		Render3D(ImagePannel, TreeTex);
 	}
 };

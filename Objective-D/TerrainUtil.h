@@ -13,8 +13,9 @@ public:
 	void InputPosition(XMFLOAT3& PositionValue, float HeightOffsetValue = 0.0);
 	void SetHeightToTerrain(XMFLOAT3& PositionValue);
 	bool CheckCollision(const TerrainUtil& Other);
-
+	float GetFloorHeight(float x, float z, float Offset);
 private:
 	XMFLOAT3 Position{};
 	float HeightOffset{};
 };
+extern TerrainUtil terrainUtil;

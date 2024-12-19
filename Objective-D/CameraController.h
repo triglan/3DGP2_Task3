@@ -17,7 +17,7 @@ private:
 
 public:
 	void InputKey(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) {
-		if (camera.Mode != CamMode::TRACK_MODE) {
+		if (camera.CurrentMode() != CamMode::TRACK_MODE) {
 			switch (nMessageID) {
 			case WM_KEYDOWN:
 				switch (wParam) {
@@ -52,7 +52,7 @@ public:
 	}
 
 	void InputMouse(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) {
-		if (camera.Mode != CamMode::TRACK_MODE) {
+		if (camera.CurrentMode() != CamMode::TRACK_MODE) {
 			switch (nMessageID) {
 			case WM_LBUTTONDOWN:
 				mouse.StartMotionCapture(hWnd);
@@ -66,7 +66,7 @@ public:
 	}
 
 	void Update(float FT) {
-		if (camera.Mode != CamMode::TRACK_MODE) {
+		if (camera.CurrentMode() != CamMode::TRACK_MODE) {
 			// 부드러운 카메라 회전
 			CamRotation.x = std::lerp(CamRotation.x, DestCamRotation.x, FT * 15);
 			CamRotation.y = std::lerp(CamRotation.y, DestCamRotation.y, FT * 15);
