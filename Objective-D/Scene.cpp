@@ -205,6 +205,7 @@ void Scene::ProcessSceneCommand() {
 		if (Object->second->DeleteCommand) {
 			delete Object->second;
 			Object->second = nullptr;
+			Object = ObjectIndex.erase(Object);
 			--SceneCommandCount;
 			continue;
 		}
@@ -215,5 +216,5 @@ void Scene::ProcessSceneCommand() {
 // 현재 존재하는 모든 객체들을 삭제한다.
 void Scene::ClearAll() {
 	for (auto const& Object : ObjectIndex)
-		Object.second->DeleteReserveCommand = true;
+		Object.second->DeleteCommand = true;
 }

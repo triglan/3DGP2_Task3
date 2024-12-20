@@ -9,18 +9,18 @@ private:
 	bool MoveForward{}, MoveBackward{}, MoveRight{}, MoveLeft{};
 	bool MoveUp{}, MoveDown{};
 
-	XMFLOAT3 CamPosition{0.0, 30.0, -30.0};  // 카메라 위치 기억용
+	XMFLOAT3 CamPosition{0.0, -30.0, -30.0};  // 카메라 위치 기억용
 
 	// 카메라 회전
 	XMFLOAT3 CamRotation{};
 	XMFLOAT3 DestCamRotation{};
 
 public:
-	void InputKey(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) {
+	void InputKey(KeyEvent& Event) {
 		if (camera.CurrentMode() != CamMode::TRACK_MODE) {
-			switch (nMessageID) {
+			switch (Event.Type) {
 			case WM_KEYDOWN:
-				switch (wParam) {
+				switch (Event.Key) {
 				case 'W': MoveForward = true; break;
 				case 'A': MoveLeft = true; break;
 				case 'S': MoveBackward = true; break;
@@ -32,7 +32,7 @@ public:
 				break;
 
 			case WM_KEYUP:
-				switch (wParam) {
+				switch (Event.Key) {
 				case 'W': MoveForward = false; break;
 				case 'A': MoveLeft = false; break;
 				case 'S': MoveBackward = false; break;
@@ -45,17 +45,17 @@ public:
 		}
 	}
 
-	void InputMouseMotion(HWND hWnd, POINT PrevCursorPos) {
-		if (GetCapture() == hWnd) {
+	void InputMouseMotion(MotionEvent& Event) {
+		if (GetCapture() == Event.CaptureState) {
 			mouse.HideCursor();
 		}
 	}
 
-	void InputMouse(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) {
+	void InputMouse(MouseEvent& Event) {
 		if (camera.CurrentMode() != CamMode::TRACK_MODE) {
-			switch (nMessageID) {
+			switch (Event.Type) {
 			case WM_LBUTTONDOWN:
-				mouse.StartMotionCapture(hWnd);
+				mouse.StartMotionCapture(Event.hWnd);
 				break;
 
 			case WM_LBUTTONUP:

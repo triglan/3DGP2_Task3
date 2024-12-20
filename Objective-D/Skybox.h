@@ -5,13 +5,14 @@
 class Skybox : public GameObject {
 public:
 	Skybox() {
-		Transform::Scale(ScaleMatrix, 400.0, 400.0, 400.0);
+		
 
 	}
 
-	void Render(CommandList CmdList) {
+	void Render() override {
 		InitRenderState(RENDER_TYPE_3D);
 
+		Transform::Scale(ScaleMatrix, 400.0, 400.0, 400.0);
 		SetLightUse(DISABLE_LIGHT);
 		ObjectAlpha = 1.0f;
 		camera.SetToDefaultMode();

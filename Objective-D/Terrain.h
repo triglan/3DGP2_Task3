@@ -15,7 +15,7 @@ public:
 		terrainUtil.InputData(TranslateMatrix, RotateMatrix, ScaleMatrix, TerrainMesh);
 	}
 
-	void Render(CommandList CmdList) {
+	void Render() override {
 		// 터레인은 정적 오브젝트이므로 행렬 초기화 및 변환을 실행하지 않는다.
 		//EnableLight(CmdList);
 		//FlipTexture(CmdList, false);
@@ -24,6 +24,6 @@ public:
 
 		Render3D(TerrainMesh, TerrainTex);
 
-		terrainUtil.InputData(TranslateMatrix, RotateMatrix, ScaleMatrix, TerrainMesh);
+		//terrainUtil.InputData(TranslateMatrix, RotateMatrix, ScaleMatrix, TerrainMesh);
 	}
 };

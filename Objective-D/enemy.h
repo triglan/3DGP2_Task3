@@ -85,7 +85,7 @@ public:
 
 	}
 
-	void Render(CommandList CmdList) {
+	void Render() override {
 		//Çï±â ¸öÅë
 		InitRenderState(RENDER_TYPE_3D);
 
@@ -109,8 +109,5 @@ public:
 		//range.Render(CmdList);
 
 		Math::UpdateVector(Vec, HeliRotation.x, HeliRotation.y, HeliRotation.z);
-
-
-
 	}
 };

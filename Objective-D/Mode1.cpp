@@ -22,7 +22,7 @@
 
 void Mode1::Start() {
 	SetBackgroundColor(0.5, 0.5, 0.5);
-	scene.AddObject(new TestObject, "test_object", LAYER1);
+	//scene.AddObject(new TestObject, "test_object", LAYER1);
 
 	scene.AddObject(new CameraController, "cam_controller", LAYER1);
 	scene.AddObject(new Control, "control", LAYER1);
@@ -50,7 +50,7 @@ void Mode1::Start() {
 }
 
 void Mode1::Destructor() {
-	// 여기에 모드 종료 시 필요한 작업 추가 (리소스 메모리 해제 등)
+	//scene.
 }
 
 void Mode1::KeyboardController(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) {
@@ -58,8 +58,7 @@ void Mode1::KeyboardController(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM
 
 	// esc 누를 시 프로그램 종료
 	if (Event.Type == WM_KEYDOWN && Event.Key == VK_ESCAPE)
-		// 프로그램을 종료하는 Scene 멤버 함수
-		scene.Exit();
+		scene.SwitchMode(HomeMode::Start);
 
 	scene.InputKey("control", Event);
 	scene.InputKey("cam_controller", Event);

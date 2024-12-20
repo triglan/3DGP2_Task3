@@ -21,7 +21,7 @@ public:
 		Position.y = terrainUtil.GetFloorHeight(Position.x, Position.z, 0.0);
 	}
 
-	void Render(CommandList CmdList) {
+	void Render() override {
 		InitRenderState(RENDER_TYPE_3D);
 
 		// 조명 비활성화
